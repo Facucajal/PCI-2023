@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using BETARJETA_2.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -7,12 +9,26 @@ namespace BETARJETA_2.Controllers
     [Route("api/[controller]")]
     [ApiController]
     public class TarjetaController : ControllerBase
-    {
+    { 
+        private readonly AplicationDbContext _context;
+        public TarjetaController(AplicationDbContext context) 
+        {
+            _context = context;
+        }
+
         // GET: api/<ValuesController>
         [HttpGet]
-        public IEnumerable<string> Get()
+        public async Task<IActionResult> Get()
         {
-            return new string[] { "value1", "value2" };
+            try
+            {
+                var listTarjetas = await _context.TarjetaCredito.ToListAsync();
+                return Ok(listTarjetas);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         // GET api/<ValuesController>/5
@@ -24,20 +40,62 @@ namespace BETARJETA_2.Controllers
 
         // POST api/<ValuesController>
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task<IActionResult> Post([FromBody] TarjetaCredito tarjeta)
         {
+            try 
+            {
+                _context.Add(tarjeta);
+                await _context.SaveChangesAsync();
+                return Ok(tarjeta);
+            }
+            catch (Exception ex) 
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         // PUT api/<ValuesController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public async Task<IActionResult> Put(int id, [FromBody] TarjetaCredito tarjeta)
         {
+            try
+            {
+                if(id != tarjeta.id)
+                {
+                    return NotFound();
+                }
+                _context.Update(tarjeta);
+
+                await _context.SaveChangesAsync();
+                return Ok(new { message = "La Tarjeta fue actualizada exitosamente!"});
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         // DELETE api/<ValuesController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
+            try
+            {
+                var tarjeta = await _context.TarjetaCredito.FindAsync(id);
+
+                if(tarjeta == null)
+                {
+                    return NotFound();
+                }
+
+                _context.TarjetaCredito.Remove(tarjeta);
+                await _context.SaveChangesAsync();
+                return Ok(new { message = "La Tarjeta fue Eliminada exitosamente!" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }
