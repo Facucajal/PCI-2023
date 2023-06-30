@@ -15,6 +15,11 @@ builder.Services.AddDbContext<AplicationDbContext>(
     {
         options.UseSqlServer(builder.Configuration.GetConnectionString("DevConnection"));
     });
+builder.Services.AddCors(
+    options => options.AddPolicy("AllowWebApp",
+                    builder => builder.AllowAnyOrigin().
+                                        AllowAnyHeader().
+                                        AllowAnyMethod()));
 
 
 var app = builder.Build();
@@ -25,6 +30,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors("AllowWebApp");
 
 app.UseHttpsRedirection();
 
